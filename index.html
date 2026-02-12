@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Casino 🎰💖</title>
+    <style>
+        :root {
+            --primary: #ff4d6d;
+            --gold: #ffd700;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #4a001e, #000);
+            font-family: 'Segoe UI', sans-serif;
+            color: var(--gold);
+            overflow: hidden;
+        }
+
+        .heart-bg {
+            position: absolute;
+            color: rgba(255, 77, 109, 0.2);
+            font-size: 20px;
+            animation: float 6s linear infinite;
+            z-index: 0;
+            top: 100vh;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            to { transform: translateY(-110vh) rotate(360deg); }
+        }
+
+        .firework-heart {
+            position: fixed;
+            z-index: 2000;
+            pointer-events: none;
+            font-size: 24px;
+            animation: explode 1.5s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0.5); opacity: 0; }
+        }
+
+        .celebration-heart {
+            position: fixed;
+            z-index: 1000;
+            user-select: none;
+            pointer-events: none;
+            animation: fallHeart 3.5s ease-in forwards;
+        }
+
+        @keyframes fallHeart {
+            0% { transform: translateY(-50px) scale(0); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg) scale(2); opacity: 0; }
+        }
+
+        .casino {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            background: rgba(20, 0, 28, 0.95);
+            padding: 40px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 420px;
+            border: 4px solid var(--gold);
+        }
+
+        .slots { display: flex; gap: 15px; justify-content: center; margin: 30px 0; }
+
+        .slot {
+            width: 85px;
+            height: 110px;
+            background: #111;
+            border: 3px solid var(--gold);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5em;
+            border-radius: 15px;
+        }
+
+        #pullButton {
+            padding: 15px 40px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(45deg, var(--gold), #b8860b);
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2a0033;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 35px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 200;
+            color: #333;
+            box-shadow: 0 0 50px var(--primary);
+            width: 300px;
+        }
+
+        .modal-btn { 
+            padding: 14px 30px; 
+            border-radius: 30px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 1em; 
+            margin: 10px;
+            transition: 0.2s;
+        }
+
+        .btn-yes { background: var(--primary); color: white; }
+        .btn-no { background: #555; color: white; position: relative; }
+
+        .lever-container { cursor: pointer; }
+        .lever-base { width: 12px; height: 100px; background: #888; border-radius: 10px; position: relative; transform-origin: bottom; }
+        .lever-knob { width: 35px; height: 35px; background: var(--primary); border-radius: 50%; position: absolute; top: -25px; left: -11px; }
+        .lever-base.pulled { transform: rotateX(60deg) scaleY(0.5); }
+    </style>
+</head>
+<body>
+
+    <div class="casino" id="casinoMachine">
+        <h1>🎰 LOVE SLOTS 💖</h1>
+        <div id="result" style="height: 40px; margin-bottom: 10px;">Spin to find love!</div>
+
+        <div class="gameArea" style="display:flex; align-items:center; justify-content:center; gap:20px;">
+            <div class="slots">
+                <div id="s1" class="slot">❓</div>
+                <div id="s2" class="slot">❓</div>
+                <div id="s3" class="slot">❓</div>
+            </div>
+            <div class="lever-container" id="leverTrigger">
+                <div class="lever-base" id="leverVisual"><div class="lever-knob"></div></div>
+            </div>
+        </div>
+        <button id="pullButton">PULL TO WIN 🎰</button>
+    </div>
+
+    <div id="freeGameModal" class="modal">
+        <h2 style="color: var(--primary)">BONUS! 🎁</h2>
+        <p>You've triggered a <strong>FREE GAME!</strong></p>
+        <p>Your next spin is on the house!</p>
+        <button class="modal-btn btn-yes" onclick="closeFreeModal()">LUCKY SPIN! 🍀</button>
+    </div>
+
+    <div id="questionModal" class="modal">
+        <h2>JACKPOT! 💖</h2>
+        <p>You've won my heart!</p>
+        <p><strong>Will you be my Valentine?</strong></p>
+        <div style="display: flex; justify-content: center; align-items: center; min-height: 80px;">
+            <button class="modal-btn btn-yes" onclick="handleFirstYes()">YES! 😍</button>
+            <button class="modal-btn btn-no" id="noBtn" onmouseover="moveNoButton()" onclick="cantSayNo()">No</button>
+        </div>
+    </div>
+
+    <div id="happyModal" class="modal">
+        <h2>💖 YAY! 💖</h2>
+        <p style="font-size: 1.2em;"><strong>You've made me the happiest person ever!</strong></p>
+        <button class="modal-btn btn-yes" onclick="redirectToWhatsApp()">I love you! 🚀</button>
+    </div>
+
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"></audio>
+    <audio id="freeMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+    <audio id="yesMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+
+    <script>
+        const MY_PHONE_NUMBER = "0748283461"; 
+
+        let spinCount = 0;
+        let isSpinning = false;
+        let isFreeGameActive = false;
+        const symbols = ["💖", "💘", "🌹", "💎", "🍒"];
+
+        setInterval(() => {
+            const h = document.createElement("div");
+            h.innerHTML = "❤️";
+            h.className = "heart-bg";
+            h.style.left = Math.random() * 100 + "vw";
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 6000);
+        }, 500);
+
+        function spin() {
+            if (isSpinning) return;
+            
+            // Failsafe to start music on first click
+            if (spinCount === 0) {
+                document.getElementById("bgMusic").play().catch(e => console.log("Music wait for interaction"));
+            }
+            
+            isSpinning = true;
+            document.getElementById("leverVisual").classList.add("pulled");
+            setTimeout(() => document.getElementById("leverVisual").classList.remove("pulled"), 400);
+
+            let timer = setInterval(() => {
+                document.getElementById("s1").textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                document.getElementById("s2").textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                document.getElementById("s3").textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            }, 80);
+
+            setTimeout(() => {
+                clearInterval(timer);
+                
+                if (isFreeGameActive) {
+                    document.getElementById("s1").textContent = "💖";
+                    document.getElementById("s2").textContent = "💖";
+                    document.getElementById("s3").textContent = "💖";
+                    document.getElementById("questionModal").style.display = "block";
+                } else {
+                    spinCount++;
+                    if (spinCount === 5) {
+                        triggerFreeGameNotice();
+                    } else {
+                        document.getElementById("result").textContent = "Try again! ❤️";
+                        isSpinning = false;
+                    }
+                }
+            }, 1200);
+        }
+
+        function triggerFreeGameNotice() {
+            document.getElementById("bgMusic").pause();
+            document.getElementById("freeMusic").play();
+            document.getElementById("freeGameModal").style.display = "block";
+        }
+
+        function closeFreeModal() {
+            document.getElementById("freeGameModal").style.display = "none";
+            document.getElementById("result").innerHTML = "✨ FREE GAME ACTIVE! ✨";
+            isFreeGameActive = true;
+            isSpinning = false;
+        }
+
+        function moveNoButton() {
+            const noBtn = document.getElementById("noBtn");
+            const x = Math.random() * (window.innerWidth - noBtn.offsetWidth) - (window.innerWidth / 2) + 50;
+            const y = Math.random() * (window.innerHeight - noBtn.offsetHeight) - (window.innerHeight / 2) + 50;
+            noBtn.style.transform = `translate(${x}px, ${y}px)`;
+        }
+
+        function cantSayNo() {
+            alert("You can't say no! 😉💖");
+        }
+
+        function createFirework(x, y) {
+            const heartTypes = ["❤️", "💖", "💝", "💕", "✨"];
+            for (let i = 0; i < 24; i++) {
+                const f = document.createElement("div");
+                f.innerHTML = heartTypes[Math.floor(Math.random() * heartTypes.length)];
+                f.className = "firework-heart";
+                f.style.left = x + "px";
+                f.style.top = y + "px";
+                const angle = (Math.PI * 2 / 24) * i;
+                const distance = 100 + Math.random() * 100;
+                f.style.setProperty('--tx', Math.cos(angle) * distance + "px");
+                f.style.setProperty('--ty', Math.sin(angle) * distance + "px");
+                document.body.appendChild(f);
+                setTimeout(() => f.remove(), 1500);
+            }
+        }
+
+        function handleFirstYes() {
+            document.getElementById("questionModal").style.display = "none";
+            document.getElementById("freeMusic").pause();
+            
+            // Start the Last Song
+            document.getElementById("yesMusic").play();
+            
+            setInterval(launchDifferentHearts, 300);
+            
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+            createFirework(centerX, centerY);
+            setTimeout(() => createFirework(centerX - 120, centerY - 100), 400);
+            setTimeout(() => createFirework(centerX + 120, centerY - 100), 800);
+
+            setTimeout(() => {
+                document.getElementById("happyModal").style.display = "block";
+                document.getElementById("casinoMachine").style.opacity = "0.2";
+            }, 500);
+        }
+
+        function launchDifferentHearts() {
+            const heartTypes = ["❤️", "💖", "💝", "💕", "✨", "💓", "💘"];
+            const h = document.createElement("div");
+            h.innerHTML = heartTypes[Math.floor(Math.random() * heartTypes.length)];
+            h.className = "celebration-heart";
+            h.style.left = Math.random() * 100 + "vw";
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 3500);
+        }
+
+        function redirectToWhatsApp() {
+            const msg = encodeURIComponent("I love you! Yes, I'll be your Valentine! 💖");
+            window.open(`https://wa.me/${MY_PHONE_NUMBER}?text=${msg}`, '_blank');
+        }
+
+        document.getElementById("pullButton").addEventListener("click", spin);
+        document.getElementById("leverTrigger").addEventListener("click", spin);
+    </script>
+</body>
+</html>
