@@ -2,12 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Love Casino 🎰💖</title>
     <style>
         :root {
             --primary: #ff4d6d;
             --gold: #ffd700;
+        }
+
+        /* MOBILE GUARD: Disables zooming and the gray highlight box on tap */
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -20,6 +26,9 @@
             font-family: 'Segoe UI', sans-serif;
             color: var(--gold);
             overflow: hidden;
+            /* Prevents the page from 'bouncing' on iPhone */
+            position: fixed; 
+            width: 100%;
         }
 
         .heart-bg {
@@ -67,33 +76,34 @@
             z-index: 10;
             text-align: center;
             background: rgba(20, 0, 28, 0.95);
-            padding: 40px;
+            padding: 30px;
             border-radius: 30px;
             width: 90%;
             max-width: 420px;
             border: 4px solid var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
-        .slots { display: flex; gap: 15px; justify-content: center; margin: 30px 0; }
+        .slots { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
 
         .slot {
-            width: 85px;
-            height: 110px;
+            width: 75px;
+            height: 100px;
             background: #111;
             border: 3px solid var(--gold);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 3.5em;
+            font-size: 3em;
             border-radius: 15px;
         }
 
         #pullButton {
-            padding: 15px 40px;
+            padding: 15px 35px;
             border-radius: 50px;
             border: none;
             background: linear-gradient(45deg, var(--gold), #b8860b);
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             color: #2a0033;
             cursor: pointer;
@@ -138,7 +148,7 @@
 <body>
 
     <div class="casino" id="casinoMachine">
-        <h1>🎰 LOVE SLOTS 💖</h1>
+        <h1 style="font-size: 1.8em;">🎰 LOVE SLOTS 💖</h1>
         <div id="result" style="height: 40px; margin-bottom: 10px;">Spin to find love!</div>
 
         <div class="gameArea" style="display:flex; align-items:center; justify-content:center; gap:20px;">
@@ -201,9 +211,8 @@
         function spin() {
             if (isSpinning) return;
             
-            // Failsafe to start music on first click
             if (spinCount === 0) {
-                document.getElementById("bgMusic").play().catch(e => console.log("Music wait for interaction"));
+                document.getElementById("bgMusic").play().catch(e => console.log("Music wait"));
             }
             
             isSpinning = true;
@@ -280,18 +289,11 @@
         function handleFirstYes() {
             document.getElementById("questionModal").style.display = "none";
             document.getElementById("freeMusic").pause();
-            
-            // Start the Last Song
             document.getElementById("yesMusic").play();
-            
             setInterval(launchDifferentHearts, 300);
-            
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             createFirework(centerX, centerY);
-            setTimeout(() => createFirework(centerX - 120, centerY - 100), 400);
-            setTimeout(() => createFirework(centerX + 120, centerY - 100), 800);
-
             setTimeout(() => {
                 document.getElementById("happyModal").style.display = "block";
                 document.getElementById("casinoMachine").style.opacity = "0.2";
