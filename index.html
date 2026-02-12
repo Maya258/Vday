@@ -10,7 +10,6 @@
             --gold: #ffd700;
         }
 
-        /* MOBILE GUARD: Disables zooming and the gray highlight box on tap */
         * {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
@@ -26,7 +25,6 @@
             font-family: 'Segoe UI', sans-serif;
             color: var(--gold);
             overflow: hidden;
-            /* Prevents the page from 'bouncing' on iPhone */
             position: fixed; 
             width: 100%;
         }
@@ -187,17 +185,20 @@
         <button class="modal-btn btn-yes" onclick="redirectToWhatsApp()">I love you! 🚀</button>
     </div>
 
-    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3"></audio>
-    <audio id="freeMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-    <audio id="yesMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3" preload="auto"></audio>
+    <audio id="freeMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" preload="auto"></audio>
+    <audio id="yesMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" preload="auto"></audio>
 
     <script>
         const MY_PHONE_NUMBER = "0748283461"; 
-
         let spinCount = 0;
         let isSpinning = false;
         let isFreeGameActive = false;
         const symbols = ["💖", "💘", "🌹", "💎", "🍒"];
+
+        const bgMusic = document.getElementById("bgMusic");
+        const freeMusic = document.getElementById("freeMusic");
+        const yesMusic = document.getElementById("yesMusic");
 
         setInterval(() => {
             const h = document.createElement("div");
@@ -211,8 +212,12 @@
         function spin() {
             if (isSpinning) return;
             
-            if (spinCount === 0) {
-                document.getElementById("bgMusic").play().catch(e => console.log("Music wait"));
+            // Kickstart all audio objects on first tap (Silent trick for mobile)
+            if (spinCount === 0 && !isFreeGameActive) {
+                bgMusic.play().catch(() => {});
+                // Load others so they are ready
+                freeMusic.play().then(() => freeMusic.pause()).catch(() => {});
+                yesMusic.play().then(() => yesMusic.pause()).catch(() => {});
             }
             
             isSpinning = true;
@@ -246,8 +251,9 @@
         }
 
         function triggerFreeGameNotice() {
-            document.getElementById("bgMusic").pause();
-            document.getElementById("freeMusic").play();
+            bgMusic.pause();
+            freeMusic.currentTime = 0;
+            freeMusic.play().catch(e => console.log("Audio block:", e));
             document.getElementById("freeGameModal").style.display = "block";
         }
 
@@ -265,15 +271,35 @@
             noBtn.style.transform = `translate(${x}px, ${y}px)`;
         }
 
-        function cantSayNo() {
-            alert("You can't say no! 😉💖");
+        function cantSayNo() { alert("You can't say no! 😉💖"); }
+
+        function handleFirstYes() {
+            document.getElementById("questionModal").style.display = "none";
+            freeMusic.pause();
+            yesMusic.currentTime = 0;
+            yesMusic.play().catch(() => {});
+
+            setInterval(launchDifferentHearts, 300);
+            createFirework(window.innerWidth / 2, window.innerHeight / 2);
+            setTimeout(() => {
+                document.getElementById("happyModal").style.display = "block";
+                document.getElementById("casinoMachine").style.opacity = "0.2";
+            }, 500);
+        }
+
+        function launchDifferentHearts() {
+            const h = document.createElement("div");
+            h.innerHTML = "💖";
+            h.className = "celebration-heart";
+            h.style.left = Math.random() * 100 + "vw";
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 3500);
         }
 
         function createFirework(x, y) {
-            const heartTypes = ["❤️", "💖", "💝", "💕", "✨"];
             for (let i = 0; i < 24; i++) {
                 const f = document.createElement("div");
-                f.innerHTML = heartTypes[Math.floor(Math.random() * heartTypes.length)];
+                f.innerHTML = "✨";
                 f.className = "firework-heart";
                 f.style.left = x + "px";
                 f.style.top = y + "px";
@@ -284,30 +310,6 @@
                 document.body.appendChild(f);
                 setTimeout(() => f.remove(), 1500);
             }
-        }
-
-        function handleFirstYes() {
-            document.getElementById("questionModal").style.display = "none";
-            document.getElementById("freeMusic").pause();
-            document.getElementById("yesMusic").play();
-            setInterval(launchDifferentHearts, 300);
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            createFirework(centerX, centerY);
-            setTimeout(() => {
-                document.getElementById("happyModal").style.display = "block";
-                document.getElementById("casinoMachine").style.opacity = "0.2";
-            }, 500);
-        }
-
-        function launchDifferentHearts() {
-            const heartTypes = ["❤️", "💖", "💝", "💕", "✨", "💓", "💘"];
-            const h = document.createElement("div");
-            h.innerHTML = heartTypes[Math.floor(Math.random() * heartTypes.length)];
-            h.className = "celebration-heart";
-            h.style.left = Math.random() * 100 + "vw";
-            document.body.appendChild(h);
-            setTimeout(() => h.remove(), 3500);
         }
 
         function redirectToWhatsApp() {
