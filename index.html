@@ -408,21 +408,19 @@
         }
 
         function redirectToWhatsApp() {
-            const tracks = ["bgMusic", "freeMusic", "yesMusic"];
-            tracks.forEach(id => {
-                const audio = document.getElementById(id);
-                audio.pause();
-                audio.currentTime = 0; // Resets the song to the start
-            });
-
-    const msg = encodeURIComponent("I love you! Yes, I'll be your Valentine! 💖");
-    window.open(`https://wa.me/${MY_PHONE_NUMBER}?text=${msg}`, '_blank');
-}
+            document.getElementById("bgMusic").pause();
+            document.getElementById("freeMusic").pause();
+            document.getElementById("yesMusic").pause();
+        
+            const msg = encodeURIComponent("I love you! Yes, I'll be your Valentine! 💖");
+            window.open(`https://wa.me/${MY_PHONE_NUMBER}?text=${msg}`, '_blank');
+        }
 
         document.getElementById("pullButton").addEventListener("click", spin);
         document.getElementById("leverTrigger").addEventListener("click", spin);
     </script>
 </body>
 </html>
+
 
 
