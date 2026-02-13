@@ -8,6 +8,7 @@
         :root {
             --primary: #ff4d6d;
             --gold: #ffd700;
+            --money-green: #00ff88;
         }
 
         body {
@@ -22,6 +23,30 @@
             overflow: hidden;
         }
 
+        /* --- New Wallet Styles --- */
+        .wallet-display {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        #balance {
+            color: var(--money-green);
+            font-weight: bold;
+            font-size: 1.4em;
+            transition: transform 0.2s ease;
+        }
+
+        .cost-tag {
+            font-size: 0.8em;
+            color: #ccc;
+            display: block;
+        }
+
+        /* Existing Styles */
         .heart-bg {
             position: absolute;
             color: rgba(255, 77, 109, 0.2);
@@ -67,14 +92,14 @@
             z-index: 10;
             text-align: center;
             background: rgba(20, 0, 28, 0.95);
-            padding: 40px;
+            padding: 30px;
             border-radius: 30px;
             width: 90%;
             max-width: 420px;
             border: 4px solid var(--gold);
         }
 
-        .slots { display: flex; gap: 15px; justify-content: center; margin: 30px 0; }
+        .slots { display: flex; gap: 15px; justify-content: center; margin: 20px 0; }
 
         .slot {
             width: 85px;
@@ -86,6 +111,14 @@
             align-items: center;
             font-size: 3.5em;
             border-radius: 15px;
+            transition: 0.3s;
+        }
+
+        /* Added Win Effect */
+        .win-glow {
+            box-shadow: 0 0 20px var(--money-green);
+            border-color: var(--money-green);
+            transform: scale(1.05);
         }
 
         #pullButton {
@@ -97,7 +130,10 @@
             font-weight: bold;
             color: #2a0033;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
         }
+
+        #pullButton:active { transform: scale(0.95); }
 
         .modal {
             display: none;
@@ -130,7 +166,7 @@
         .btn-no { background: #555; color: white; position: relative; }
 
         .lever-container { cursor: pointer; }
-        .lever-base { width: 12px; height: 100px; background: #888; border-radius: 10px; position: relative; transform-origin: bottom; }
+        .lever-base { width: 12px; height: 100px; background: #888; border-radius: 10px; position: relative; transform-origin: bottom; transition: 0.3s; }
         .lever-knob { width: 35px; height: 35px; background: var(--primary); border-radius: 50%; position: absolute; top: -25px; left: -11px; }
         .lever-base.pulled { transform: rotateX(60deg) scaleY(0.5); }
     </style>
@@ -139,7 +175,14 @@
 
     <div class="casino" id="casinoMachine">
         <h1>🎰 LOVE SLOTS 💖</h1>
-        <div id="result" style="height: 40px; margin-bottom: 10px;">Spin to find love!</div>
+        
+        <div class="wallet-display">
+            <span class="cost-tag">Balance</span>
+            <span id="balance">R100</span>
+            <span class="cost-tag" id="priceLabel">R20 per spin</span>
+        </div>
+
+        <div id="result" style="height: 30px; margin-bottom: 10px; color: #fff; font-weight: bold;">Spin to find love!</div>
 
         <div class="gameArea" style="display:flex; align-items:center; justify-content:center; gap:20px;">
             <div class="slots">
@@ -187,8 +230,12 @@
         let spinCount = 0;
         let isSpinning = false;
         let isFreeGameActive = false;
+        let currentBalance = 100;
+        const spinCost = 20;
+        const jackpotWin = 100; // Win R100 for three of a kind
         const symbols = ["💖", "💘", "🌹", "💎", "🍒"];
 
+        // Heart background logic
         setInterval(() => {
             const h = document.createElement("div");
             h.innerHTML = "❤️";
@@ -198,23 +245,47 @@
             setTimeout(() => h.remove(), 6000);
         }, 500);
 
+        function updateBalanceUI(isWin = false) {
+            const balanceEl = document.getElementById("balance");
+            balanceEl.textContent = `R${currentBalance}`;
+            
+            if (isWin) {
+                balanceEl.style.transform = "scale(1.3)";
+                balanceEl.style.color = "white";
+                setTimeout(() => {
+                    balanceEl.style.transform = "scale(1)";
+                    balanceEl.style.color = "var(--money-green)";
+                }, 400);
+            } else {
+                balanceEl.style.color = "white";
+                setTimeout(() => balanceEl.style.color = "var(--money-green)", 200);
+            }
+        }
+
         function spin() {
             if (isSpinning) return;
+
+            // Money check (skip if free game)
+            if (!isFreeGameActive) {
+                if (currentBalance < spinCost) {
+                    document.getElementById("result").textContent = "Insufficient funds! 💔";
+                    return;
+                }
+                currentBalance -= spinCost;
+                updateBalanceUI();
+            }
             
-            // --- FIX FOR MUSIC ---
+            // Audio unlock
             if (spinCount === 0) {
-                // Play first song
                 document.getElementById("bgMusic").play().catch(e => console.log("Unlock required"));
-                
-                // Unlocks the other two songs silently so they work later
                 const fMusic = document.getElementById("freeMusic");
                 fMusic.play().then(() => { fMusic.pause(); fMusic.currentTime = 0; }).catch(() => {});
-                
                 const yMusic = document.getElementById("yesMusic");
                 yMusic.play().then(() => { yMusic.pause(); yMusic.currentTime = 0; }).catch(() => {});
             }
             
             isSpinning = true;
+            document.getElementById("result").textContent = "Spinning...";
             document.getElementById("leverVisual").classList.add("pulled");
             setTimeout(() => document.getElementById("leverVisual").classList.remove("pulled"), 400);
 
@@ -227,6 +298,10 @@
             setTimeout(() => {
                 clearInterval(timer);
                 
+                const res1 = document.getElementById("s1").textContent;
+                const res2 = document.getElementById("s2").textContent;
+                const res3 = document.getElementById("s3").textContent;
+
                 if (isFreeGameActive) {
                     document.getElementById("s1").textContent = "💖";
                     document.getElementById("s2").textContent = "💖";
@@ -234,10 +309,21 @@
                     document.getElementById("questionModal").style.display = "block";
                 } else {
                     spinCount++;
-                    if (spinCount === 5) {
-                        triggerFreeGameNotice();
+
+                    // --- WIN LOGIC ---
+                    if (res1 === res2 && res2 === res3) {
+                        currentBalance += jackpotWin;
+                        updateBalanceUI(true);
+                        document.getElementById("result").innerHTML = `<span style="color:var(--money-green)">WIN! +R${jackpotWin} 💰</span>`;
+                        document.querySelectorAll('.slot').forEach(s => s.classList.add('win-glow'));
+                        setTimeout(() => document.querySelectorAll('.slot').forEach(s => s.classList.remove('win-glow')), 1500);
                     } else {
                         document.getElementById("result").textContent = "Try again! ❤️";
+                    }
+
+                    if (spinCount === 5) {
+                        setTimeout(triggerFreeGameNotice, 800);
+                    } else {
                         isSpinning = false;
                     }
                 }
@@ -253,6 +339,8 @@
         function closeFreeModal() {
             document.getElementById("freeGameModal").style.display = "none";
             document.getElementById("result").innerHTML = "✨ FREE GAME ACTIVE! ✨";
+            document.getElementById("priceLabel").textContent = "FREE SPIN";
+            document.getElementById("priceLabel").style.color = "var(--gold)";
             isFreeGameActive = true;
             isSpinning = false;
         }
@@ -277,7 +365,7 @@
                 f.style.left = x + "px";
                 f.style.top = y + "px";
                 const angle = (Math.PI * 2 / 24) * i;
-                const distance = 100 + Math.random() * 100;
+                const distance = 100 + Math.random() * 150;
                 f.style.setProperty('--tx', Math.cos(angle) * distance + "px");
                 f.style.setProperty('--ty', Math.sin(angle) * distance + "px");
                 document.body.appendChild(f);
@@ -288,17 +376,20 @@
         function handleFirstYes() {
             document.getElementById("questionModal").style.display = "none";
             document.getElementById("freeMusic").pause();
-            
-            // Start the Last Song
             document.getElementById("yesMusic").play();
             
+            // Start continuous celebratory hearts
             setInterval(launchDifferentHearts, 300);
             
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            createFirework(centerX, centerY);
-            setTimeout(() => createFirework(centerX - 120, centerY - 100), 400);
-            setTimeout(() => createFirework(centerX + 120, centerY - 100), 800);
+            // LOTS OF FIREWORKS - multiple random explosions!
+            const fireworkShow = setInterval(() => {
+                const randomX = Math.random() * window.innerWidth;
+                const randomY = Math.random() * window.innerHeight;
+                createFirework(randomX, randomY);
+            }, 400);
+
+            // Stop the firework spam after 10 seconds to save performance
+            setTimeout(() => clearInterval(fireworkShow), 10000);
 
             setTimeout(() => {
                 document.getElementById("happyModal").style.display = "block";
