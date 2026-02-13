@@ -407,11 +407,7 @@
             setTimeout(() => h.remove(), 3500);
         }
 
-        function redirectToWhatsApp() {
-            document.getElementById("bgMusic").pause();
-            document.getElementById("freeMusic").pause();
-            document.getElementById("yesMusic").pause();
-        
+        function redirectToWhatsApp() {        
             const msg = encodeURIComponent("I love you! Yes, I'll be your Valentine! 💖");
             window.open(`https://wa.me/${MY_PHONE_NUMBER}?text=${msg}`, '_blank');
         }
@@ -421,6 +417,7 @@
     </script>
 </body>
 </html>
+
 
 
 
